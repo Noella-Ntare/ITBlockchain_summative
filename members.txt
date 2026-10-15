@@ -1,0 +1,6 @@
+# member_id, full_name, course_code
+M001,Alice Uwase,SE101
+M002,Brian Mugisha,SE102
+M003,Chloe Ingabire,CS201
+M004,David Habimana,SE101
+M005,Eve Mukamana,CS202

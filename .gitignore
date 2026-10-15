@@ -1,0 +1,5 @@
+libchain
+*.o
+chain.dat
+chain.dat.tmp
+wallet.dat

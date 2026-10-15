@@ -1,0 +1,6 @@
+# book_id, title, author
+B001,Introduction to Algorithms,Thomas Cormen
+B002,The C Programming Language,Kernighan and Ritchie
+B003,Mastering Bitcoin,Andreas Antonopoulos
+B004,Clean Code,Robert Martin
+B005,Operating System Concepts,Silberschatz

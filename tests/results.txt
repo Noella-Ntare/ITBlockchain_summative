@@ -1,0 +1,138 @@
+=== Scenario 1: registry validation, borrow, PoW mining, chain validation
+  [PASS] valid borrow signed and pooled
+         expected: ECDSA) and added to pending pool [PENDING]
+         actual  : Request R0001: BORROWED book=B001 copy=C001 member=M001 nonce=0 signed (ECDSA) and added to pending pool [PEND
+  [PASS] unknown book rejected
+         expected: book id 'B999' is invalid or not in the book registry
+         actual  : ERROR: book id 'B999' is invalid or not in the book registry. Request aborted.
+  [PASS] unknown member rejected
+         expected: member id 'M099' is invalid or not in the member registry
+         actual  : ERROR: member id 'M099' is invalid or not in the member registry. Request aborted.
+  [PASS] block mined at difficulty 2
+         expected: CONFIRMED block 1  hash=00
+         actual  : CONFIRMED block 1  hash=00caa8b4e44317e7f3a9061e68df7ea9e050fe7aceaa075e3bbea9c7b59a27a3
+  [PASS] hash attempts displayed
+         expected: hash attempts=
+         actual  :   difficulty=2  nonce=85  hash attempts=86  time=0.000s  member token rewards in block=0
+  [PASS] chain validates
+         expected: CHAIN VALID: 2 block(s) verified
+         actual  : CHAIN VALID: 2 block(s) verified (links, hashes, PoW, Merkle roots, ECDSA signatures, nonces).
+=== Scenario 2: reservation queue, automatic offer, token rewards (on-time 10, late 5)
+  [PASS] reservation joins queue
+         expected: M003 joined the reservation queue for B002 (position 1)
+         actual  :   * M003 joined the reservation queue for B002 (position 1).
+  [PASS] auto offer on return
+         expected: automatically OFFERED to M003
+         actual  :   * Copy C003 returned and automatically OFFERED to M003 (first in reservation queue, 3 day hold).
+  [PASS] copy state RESERVED for M003
+         expected: state=RESERVED  holder=M003
+         actual  : C003   book=B002  cond=GOOD  state=RESERVED  holder=M003   due=2026-10-09 renewals=0
+  [PASS] on-time reward 10 (UTXO)
+         expected: M001 balance: 10 coins  [model: UTXO]
+         actual  : M001 balance: 10 coins  [model: UTXO]
+  [PASS] late reward 5 (UTXO)
+         expected: M002 balance: 5 coins  [model: UTXO]
+         actual  : M002 balance: 5 coins  [model: UTXO]
+  [PASS] account model agrees
+         expected: Account M002: balance=5 nonce=0
+         actual  : Account M002: balance=5 nonce=0
+=== Scenario 3: overdue detection, prioritisation, fines, settlement
+  [PASS] overdue scan flags copies
+         expected: is 1 day(s) overdue -> fine accrued 1
+         actual  : Copy C001 (member M001) is 1 day(s) overdue -> fine accrued 1
+  [PASS] late return fine computed
+         expected: Return is LATE by 1 day(s): fine_amount=1
+         actual  : Return is LATE by 1 day(s): fine_amount=1 (rate 1/day).
+  [PASS] overdue request has priority 0
+         expected: OVERDUE   B001   C001   M001    0
+         actual  :   1   R0003   OVERDUE   B001   C001   M001    0    2026-10-21 19:16  PENDING
+  [PASS] fine booked on member
+         expected: M001   Alice Uwase            fines_due=1
+         actual  :   M001   Alice Uwase            fines_due=1  balance=5
+  [PASS] fine settlement queued
+         expected: TRANSFER M001 -> LIBRARY amount=1 fee=1
+         actual  : Request T0001: TRANSFER M001 -> LIBRARY amount=1 fee=1 nonce=0 signed and added to pending pool [PENDING]
+  [PASS] fine settled
+         expected: M001 settled fines worth 1 coin(s)
+         actual  :   * M001 settled fines worth 1 coin(s).
+=== Scenario 4: fraud heuristics and review workflow
+  [PASS] concurrent-borrow flag
+         expected: excessive concurrent borrows (limit 1)
+         actual  :   !! FLAGGED SUSPICIOUS: excessive concurrent borrows (limit 1)
+  [PASS] duplicate-id flag
+         expected: duplicate request_id
+         actual  :   !! FLAGGED SUSPICIOUS: duplicate request_id
+  [PASS] suspicious listed for review
+         expected: Fraud review queue
+         actual  : Fraud review queue (SUSPICIOUS requests are never mined until approved):
+  [PASS] reject discards request
+         expected: Request R0002 rejected and discarded
+         actual  : Request R0002 rejected and discarded; later nonces for that signer were renumbered and re-signed.
+  [PASS] approve releases request
+         expected: Request R0001 approved by librarian
+         actual  : Request R0001 approved by librarian; now PENDING and eligible for mining.
+  [PASS] unflagged request mined first (suspicious withheld)
+         expected: Block 1 planned: 1 request(s)
+         actual  : Block 1 planned: 1 request(s) (1 record(s), 0 token tx(s)), difficulty 2 (hash must start with 00)
+=== Scenario 5: tamper detection and persistence across restarts
+  [PASS] restart restores chain
+         expected: Saved chain found: restored 2 block(s)
+         actual  : Saved chain found: restored 2 block(s), 0 pending request(s), 5 member(s).
+  [PASS] ops locked before validation
+         expected: LOCKED:
+         actual  : LOCKED: the chain was loaded from disk (or failed a check). Run validate_chain first; no other operations are 
+  [PASS] tamper -> Merkle mismatch
+         expected: Merkle root mismatch
+         actual  :   [FAIL] block 1: Merkle root mismatch (a record was modified)
+  [PASS] tamper -> signature failure
+         expected: invalid ECDSA signature
+         actual  :   [FAIL] block 1: invalid ECDSA signature (R0001)
+  [PASS] chain_load restores clean chain
+         expected: CHAIN VALID
+         actual  : CHAIN VALID: 2 block(s) verified (links, hashes, PoW, Merkle roots, ECDSA signatures, nonces).
+  [PASS] on-disk edit detected
+         expected: CHAIN INVALID
+         actual  : CHAIN INVALID: 2 problem(s) detected.
+=== Scenario 6: solo / pool / cloud mining
+  [PASS] solo full reward
+         expected: SOLO mining reward: 100 coins
+         actual  :   SOLO mining reward: 100 coins -> MINER-SOLO (full reward, on top of member rewards)
+  [PASS] pool table header
+         expected: | Miner ID | Hash rate | Attempts | Share %   | Reward   |
+         actual  :   | Miner ID | Hash rate | Attempts | Share %   | Reward   |
+  [PASS] pool fee 2%
+         expected: pool fee 2% = 2, distributable 98
+         actual  :   POOL MINING: winner MINER-3 after 18 round(s). Block reward 100, pool fee 2% = 2, distributable 98
+  [PASS] cloud earnings summary
+         expected: Gross earnings:
+         actual  :   Gross earnings: 326   Total fees paid: 300   NET PROFIT: 26
+  [PASS] cloud warning when fees > rewards
+         expected: WARNING: cumulative fees
+         actual  :   | WARNING: cumulative fees (200) exceed cumulative rewards (75) at round 1
+  [PASS] rental > 5 rounds rejected
+         expected: rental duration must be 1 to 5 rounds
+         actual  : ERROR: rental duration must be 1 to 5 rounds.
+  [PASS] difficulty range enforced
+         expected: difficulty must be 1..4
+         actual  : ERROR: difficulty must be 1..4
+=== Scenario 7: replay protection, insufficient funds, UTXO fee/change, double spend
+  [PASS] lending nonce replay rejected
+         expected: replay protection - nonce 0 rejected
+         actual  : ERROR: replay protection - nonce 0 rejected; expected next nonce for M001 is 2.
+  [PASS] insufficient balance rejected
+         expected: insufficient balance
+         actual  : ERROR: insufficient balance - M001 has 10 spendable coin(s) but needs 501 (amount 500 + fee 1). Transaction re
+  [PASS] bad account nonce rejected
+         expected: account nonce 9 rejected
+         actual  : ERROR: account nonce 9 rejected (expected 0) - replayed or out-of-order transaction.
+  [PASS] fee charged, change returned
+         expected: M001           6
+         actual  :   8c30759ea495d9de.. 1    M001           6
+  [PASS] double-spend prevented
+         expected: double-spend prevented
+         actual  : REJECTED: output already spent (double-spend prevented).
+  [PASS] history linked list
+         expected: TRANSFER  M001
+         actual  :   2    TRANSFER  M001           M002           3       1    0      3
+
+RESULT: 43 passed, 0 failed
