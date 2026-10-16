@@ -125,4 +125,4 @@ docs/           TECHNICAL_REPORT.md, SYSTEM_DESIGN.md, REQUIREMENTS_CHECKLIST.md
 chain.dat       saved chain/state (text .dat)         wallet.dat   private keys (mode 0600)
 ```
 
-> `wallet.dat` holds simulated wallets for every member. Never commit it (see `.gitignore`).
+
